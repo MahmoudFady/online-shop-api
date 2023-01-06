@@ -9,4 +9,5 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 dbConnection();
+require("./api/models/product");
 module.exports = app;
