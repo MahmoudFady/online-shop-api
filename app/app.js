@@ -1,0 +1,12 @@
+require("dotenv").config();
+const express = require("express");
+const dbConnection = require("./config/db-connection");
+const morgan = require("morgan");
+const cors = require("cors");
+const app = express();
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cors());
+app.use(morgan("dev"));
+dbConnection();
+module.exports = app;
