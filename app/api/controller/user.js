@@ -12,7 +12,7 @@ module.exports.signin = async (req, res, next) => {
     if (!matchedPassword) {
       return res.status(401).json({ message: "wrong password exist" });
     }
-    const token = generateToken({ email, name: user.name });
+    const token = generateToken({ userId: user._id, email });
     res.status(200).json({
       message: "signin success",
       user,
@@ -41,7 +41,7 @@ module.exports.signup = async (req, res, next) => {
       address,
       password: hash,
     }).save();
-    const token = generateToken({ email, name });
+    const token = generateToken({ userId: user._id, email });
     res.json({ message: "signup success", user, token });
   } catch (error) {
     res.status(500).json({

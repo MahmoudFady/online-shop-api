@@ -7,9 +7,6 @@ const productSchema = new mongoose.Schema({
   price: Number,
   discountPercentage: {
     type: Number,
-    get: function (value) {
-      return Math.round(value);
-    },
   },
   rating: Number,
   thumbnail: String,

@@ -3,6 +3,7 @@ const express = require("express");
 const dbConnection = require("./config/db-connection");
 const userRoutes = require("./api/routes/user");
 const productRoutes = require("./api/routes/product");
+const cartRoutes = require("./api/routes/cart");
 const morgan = require("morgan");
 const cors = require("cors");
 const app = express();
@@ -13,6 +14,7 @@ app.use(morgan("dev"));
 dbConnection();
 app.use("/api/user/", userRoutes);
 app.use("/api/products/", productRoutes);
+app.use("/api/cart/", cartRoutes);
 app.use((req, res, next) => {
   res.status(404).json({ message: "un known api request" });
 });
