@@ -1,6 +1,5 @@
-const Product = require("../models/product");
 const productAccessDB = require("../access-db/product");
-module.exports.getAll = async (req, res, next) => {
+module.exports.getAll = async (req, res) => {
   try {
     const { products, paginateOptions } = await productAccessDB.getAll(
       req.query
@@ -14,7 +13,7 @@ module.exports.getAll = async (req, res, next) => {
     res.status(500).json({ error });
   }
 };
-module.exports.search = async (req, res, next) => {
+module.exports.search = async (req, res) => {
   try {
     const q = req.query.q;
     const regex = new RegExp(q);
@@ -27,7 +26,7 @@ module.exports.search = async (req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 };
-module.exports.getById = async (req, res, next) => {
+module.exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
     const product = await productAccessDB.getById(id);
@@ -36,7 +35,7 @@ module.exports.getById = async (req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 };
-module.exports.getByCategory = async (req, res, next) => {
+module.exports.getByCategory = async (req, res) => {
   try {
     const { category } = req.params;
     const { products, paginateOptions } = await productAccessDB.getByCategory(
@@ -52,7 +51,7 @@ module.exports.getByCategory = async (req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 };
-module.exports.getByPriceRange = async (req, res, next) => {
+module.exports.getByPriceRange = async (req, res) => {
   try {
     const { products, paginateOptions } = await productAccessDB.getByPriceRange(
       req.query

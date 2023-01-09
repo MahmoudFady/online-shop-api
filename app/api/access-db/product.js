@@ -1,13 +1,9 @@
 const Product = require("../models/product");
-module.exports.getAll = async (reqQuery) => {
-  const total = await Product.count();
-  const paginateOptions = getPaginateOptions(reqQuery, total);
-  const { skip, limit } = paginateOptions;
-  const products = await this.getByPaginate(skip, limit);
-  return { products, paginateOptions };
-};
 const getPaginateOptions = require("../helper/handle-paginate");
-module.exports.getByPaginate = (skip, limit, query = {}) => {
+const getProductsCount = async (query = {}) => {
+  return await Product.find(query).count();
+};
+const getByPaginate = (skip, limit, query = {}) => {
   return Product.find(query)
     .skip(skip)
     .limit(limit)
@@ -18,6 +14,13 @@ module.exports.getById = (id) => {
 };
 module.exports.deleteById = (id) => {
   return Product.deleteById(id);
+};
+module.exports.getAll = async (reqQuery) => {
+  const total = await getProductsCount();
+  const paginateOptions = getPaginateOptions(reqQuery, total);
+  const { skip, limit } = paginateOptions;
+  const products = await getByPaginate(skip, limit);
+  return { products, paginateOptions };
 };
 module.exports.updateById = (id, data) => {
   return Product.updateOne(
@@ -38,23 +41,22 @@ module.exports.getBySearch = (target) => {
 };
 
 module.exports.getByCategory = async (reqQuery, category) => {
-  const total = await Product.find({ category }).count();
+  const total = await getProductsCount({ category });
   const paginateOptions = getPaginateOptions(reqQuery, total);
   const { skip, limit } = paginateOptions;
-  const products = await this.getByPaginate(skip, limit, { category });
+  const products = await getByPaginate(skip, limit, { category });
   return { paginateOptions, products };
 };
 module.exports.getByPriceRange = async (reqQuery) => {
-  console.log("fired");
   let { minPrice, maxPrice } = reqQuery;
   minPrice = +minPrice || 1;
   maxPrice = +maxPrice || 2000;
-  const total = await Product.find({
+  const total = await getProductsCount({
     price: { $gte: minPrice, $lte: maxPrice },
-  }).count();
+  });
   const paginateOptions = getPaginateOptions(reqQuery, total);
   const { skip, limit } = paginateOptions;
-  const products = await this.getByPaginate(skip, limit, {
+  const products = await getByPaginate(skip, limit, {
     price: { $gte: minPrice, $lte: maxPrice },
   });
   return { paginateOptions, products };

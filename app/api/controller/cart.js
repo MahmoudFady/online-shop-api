@@ -1,47 +1,30 @@
-const { calcProductPrice } = require("../helper/cart");
-const Cart = require("../models/cart");
-const Product = require("../models/product");
+const cartAccessDB = require("../access-db/cart");
+const productAccessDB = require("../access-db/product");
 module.exports.pushProduct = async (decode, req, res, next) => {
   try {
     const { userId } = decode;
     const productId = req.params["productId"];
-    const { _id, price, discountPercentage } = await Product.findById(
+    const { price, discountPercentage } = await productAccessDB.getById(
       productId
-    ).select("price discountPercentage");
-    const productPrice = calcProductPrice(price, discountPercentage);
-    const cart = await Cart.findOne({ user: userId }).populate({
-      path: "products.product",
-      select: "title brand thumbnail price discountPercentage",
-    });
+    );
+    const cart = await cartAccessDB.getByUserId(userId);
     if (cart) {
-      cart.products.push({
-        product: productId,
-        quantity: 1,
-        totalPrice: price,
-        totalPriceAfterDiscount: productPrice,
-      });
-      cart.totalPrice += price;
-      cart.totalPriceAfterDiscount += productPrice;
-      cart.totalQuantity += 1;
-      cart.totalProducts += 1;
-      await cart.save();
-      return res.status(200).json({ message: "your cart updated", cart });
+      const updatedCart = await cartAccessDB.pushProduct(
+        cart,
+        productId,
+        price,
+        discountPercentage
+      );
+      return res
+        .status(200)
+        .json({ message: "your cart updated", cart: updatedCart });
     }
-    const createdCart = await new Cart({
-      user: userId,
-      products: [
-        {
-          product: _id,
-          quantity: 1,
-          totalPrice: price,
-          totalPriceAfterDiscount: productPrice,
-        },
-      ],
-      totalQuantity: 1,
-      totalProducts: 1,
-      totalPrice: price,
-      totalPriceAfterDiscount: productPrice,
-    }).save();
+    const createdCart = await cartAccessDB.createCart(
+      userId,
+      productId,
+      price,
+      discountPercentage
+    );
     res.status(200).json({ message: "your cart created", cart: createdCart });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -51,16 +34,8 @@ module.exports.popProduct = async (decode, req, res, next) => {
   try {
     const { userId } = decode;
     const productId = req.params["productId"];
-    const cart = await Cart.findOne({ user: userId });
-    const productIndex = cart.products.findIndex(
-      (obj) => obj.product == productId
-    );
-    const popedProduct = cart.products[productIndex];
-    cart.totalPrice -= popedProduct.totalPrice;
-    cart.totalPriceAfterDiscount -= popedProduct.totalPriceAfterDiscount;
-    cart.totalQuantity -= popedProduct.quantity;
-    cart.totalProducts -= 1;
-    cart.products.splice(productIndex, 1);
+    let cart = await cartAccessDB.getByUserId(userId);
+    cart = cartAccessDB.popProduct(cart, productId);
     if (cart.totalProducts === 0) {
       cart.remove();
       return res.status(200).json({ message: "cart deleted" });
@@ -75,32 +50,15 @@ module.exports.increaseQuantity = async (decode, req, res, next) => {
   try {
     const { userId } = decode;
     const productId = req.params["productId"];
-    const { price, discountPercentage } = await Product.findById(
+    const { price, discountPercentage } = await productAccessDB.getById(
       productId
-    ).select("price discountPercentage");
-    const productPrice = calcProductPrice(price, discountPercentage);
-    const cart = await Cart.findOneAndUpdate(
-      {
-        user: userId,
-        "products.product": productId,
-      },
-      {
-        $inc: {
-          "products.$.quantity": 1,
-          "products.$.totalPrice": price,
-          "products.$.totalPriceAfterDiscount": productPrice,
-          totalQuantity: 1,
-          totalPrice: price,
-          totalPriceAfterDiscount: productPrice,
-        },
-      },
-      {
-        new: true,
-      }
-    ).populate({
-      path: "products.product",
-      select: "title brand thumbnail price discountPercentage",
-    });
+    );
+    const cart = await cartAccessDB.increaseQuantity(
+      userId,
+      productId,
+      price,
+      discountPercentage
+    );
     res.status(200).json({ message: "incease product quantity in cart", cart });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -110,28 +68,8 @@ module.exports.decreaseQuantity = async (decode, req, res, next) => {
   try {
     const userId = decode.userId;
     const productId = req.params.productId;
-    const cart = await Cart.findOne({
-      user: userId,
-    }).populate({
-      path: "products.product",
-      select: "title brand thumbnail price discountPercentage",
-    });
-    const productIndex = cart.products.findIndex(
-      (obj) => obj.product._id == productId
-    );
-    const { price, discountPercentage } = cart.products[productIndex].product;
-    const productPrice = calcProductPrice(price, discountPercentage);
-    cart.totalPrice -= price;
-    cart.totalPriceAfterDiscount -= productPrice;
-    cart.totalQuantity -= 1;
-    cart.products[productIndex].quantity -= 1;
-    cart.products[productIndex].totalPrice -= price;
-    cart.products[productIndex].totalPriceAfterDiscount -= productPrice;
-    cart.products[productIndex].totalQuantity -= 1;
-    if (cart.products[productIndex].quantity === 0) {
-      cart.products.splice(productIndex, 1);
-      cart.totalProducts -= 1;
-    }
+    let cart = await cartAccessDB.getByUserId(userId);
+    cart = cartAccessDB.decreaseQuantity(cart, productId);
     if (cart.totalProducts === 0) {
       cart.remove();
       return res.status(200).json({ message: "cart deleted" });
