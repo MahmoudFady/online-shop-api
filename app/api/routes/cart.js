@@ -3,12 +3,13 @@ const router = express.Router();
 const cartController = require("../controller/cart");
 const checkAuth = require("../middlewares/check-auth");
 router.post("/:productId", checkAuth, cartController.pushProduct);
+router.delete("/:productId");
 router.patch(
   "/increaseQuantity/:productId",
   checkAuth,
   cartController.increaseQuantity
 );
-router.patch(
+router.delete(
   "/decreaseQuantity/:productId",
   checkAuth,
   cartController.decreaseQuantity

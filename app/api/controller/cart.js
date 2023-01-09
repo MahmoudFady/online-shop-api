@@ -47,6 +47,30 @@ module.exports.pushProduct = async (decode, req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 };
+module.exports.popProduct = async (decode, req, res, next) => {
+  try {
+    const { userId } = decode;
+    const productId = req.params["productId"];
+    const cart = await Cart.findOne({ user: userId });
+    const productIndex = cart.products.findIndex(
+      (obj) => obj.product == productId
+    );
+    const popedProduct = cart.products[productIndex];
+    cart.totalPrice -= popedProduct.totalPrice;
+    cart.totalPriceAfterDiscount -= popedProduct.totalPriceAfterDiscount;
+    cart.totalQuantity -= popedProduct.quantity;
+    cart.totalProducts -= 1;
+    cart.products.splice(productIndex, 1);
+    if (cart.totalProducts === 0) {
+      cart.remove();
+      return res.status(200).json({ message: "cart deleted" });
+    }
+    cart.save();
+    res.status(200).json({ message: "product removed form cart", cart });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 module.exports.increaseQuantity = async (decode, req, res, next) => {
   try {
     const { userId } = decode;
@@ -109,7 +133,7 @@ module.exports.decreaseQuantity = async (decode, req, res, next) => {
       cart.totalProducts -= 1;
     }
     if (cart.totalProducts === 0) {
-      cart.delete();
+      cart.remove();
       return res.status(200).json({ message: "cart deleted" });
     }
     await cart.save();
