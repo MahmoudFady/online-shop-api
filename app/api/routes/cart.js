@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const cartController = require("../controller/cart");
 const checkAuth = require("../middlewares/check-auth");
+router.get("/", checkAuth, cartController.getByUserId);
 router.post("/:productId", checkAuth, cartController.pushProduct);
 router.delete("/:productId", checkAuth, cartController.popProduct);
 router.patch(

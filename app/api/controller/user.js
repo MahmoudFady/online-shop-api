@@ -8,9 +8,9 @@ module.exports.signin = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: "email does't exist" });
     }
-    const matchedPassword = bcrypt.compare(password, user.password);
+    const matchedPassword =  bcrypt.compareSync(password, user.password);
     if (!matchedPassword) {
-      return res.status(401).json({ message: "wrong password exist" });
+      return res.status(401).json({ message: "wrong password" });
     }
     const token = generateToken({ userId: user._id, email });
     res.status(200).json({
@@ -21,7 +21,7 @@ module.exports.signin = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       error,
-      message: "some thing go wrong",
+      message: error.message,
     });
   }
 };
