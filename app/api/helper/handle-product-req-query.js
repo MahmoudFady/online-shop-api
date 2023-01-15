@@ -6,6 +6,7 @@ module.exports = (reqQuery) => {
     dataBaseQuery = {
       $or: [
         { brand: { $regex: target, $options: "i" } },
+        { category: { $regex: target, $options: "i" } },
         { title: { $regex: target, $options: "i" } },
         { description: { $regex: target, $options: "i" } },
       ],

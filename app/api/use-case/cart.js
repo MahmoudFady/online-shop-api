@@ -9,7 +9,6 @@ module.exports.pushProduct = async (userId, productId) => {
   const priceAfterDiscount = calcProductPrice(price, discountPercentage);
   let cart = await cartAccessDB.getByUserId(userId);
   let message = "";
-  console.log("pushing product");
   if (!cart) {
     cart = await cartAccessDB.createCart(
       userId,
@@ -25,6 +24,7 @@ module.exports.pushProduct = async (userId, productId) => {
       price,
       priceAfterDiscount
     );
+    console.log(cart);
     cart = await cartAccessDB.saveChanges(cart);
     message = "new product added to cart";
   }

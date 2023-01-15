@@ -72,7 +72,7 @@ module.exports.handleDecrProductQuan = (
   );
   const product = cart.products[productIndex];
   if (product.quantity === 1) {
-    cart.products.splice(productId, 1);
+    cart.products.splice(productIndex, 1);
     cart = this.updateCart(cart, -price, -priceAfterDiscount, -1, -1);
     return cart;
   }

@@ -22,8 +22,8 @@ module.exports.createCart = (userId, productId, price, priceAfterDiscount) => {
     totalPriceAfterDiscount: priceAfterDiscount,
   }).save();
 };
-module.exports.saveChanges = (cart) => {
-  return cart.save();
+module.exports.saveChanges = async (cart) => {
+  return await cart.save();
 };
 module.exports.decrProductQuan = async (cart) => {
   let message;
